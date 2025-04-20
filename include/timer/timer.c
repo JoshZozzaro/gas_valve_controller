@@ -1,8 +1,10 @@
-//    |\_/|  timer.c
-//    (* *)  version 1.0
-//  ) /  T   created by
-// ( /  ||   Joshua Zozzaro
-//  (_,-bb   04/19/25
+/*    |\_/|  timer.c
+ *    (* *)  version 1.0
+ *  ) /  T   author: Joshua Zozzaro
+ * ( /  ||   created: 04/19/25
+ *  (_,-bb   last modified: 04/19/25
+ *
+ */
 
 #include <msp430.h>
 
