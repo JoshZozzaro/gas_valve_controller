@@ -1,12 +1,13 @@
 /*    |\_/|  timer.c
- *    (* *)  version 1.0
+ *    (* *)  version 1.1
  *  ) /  T   author: Joshua Zozzaro
  * ( /  ||   created: 04/19/25
- *  (_,-bb   last modified: 04/19/25
+ *  (_,-bb   last modified: 04/22/25
  *
  */
 
 #include <msp430.h>
+#include "timer.h"
 
 // Initializer function for servo. sets up gpio 5.0 and timer TB2
 void initServo(){
