@@ -1,12 +1,13 @@
 /*    |\_/|  adc.c
- *    (* *)  version 1.0
+ *    (* *)  version 1.1
  *  ) /  T   author: Joshua Zozzaro
  * ( /  ||   created: 04/20/25
- *  (_,-bb   last modified 04/20/25
+ *  (_,-bb   last modified 04/22/25
  *
  */
 
 #include <msp430.h>
+#include "adc.h"
 
 void initADC(){
     P1SEL0 |= BIT3 | BIT4 | BIT5;       // Set pins 1.3, 1.4, and 1.5 as inputs
@@ -33,3 +34,12 @@ unsigned int readADC(char channel){
     while(ADCIV != ADCIV_ADCIFG);       // Wait for ADC to finish reading
     return ADCMEM0;                     // Return ADC measurement
 }
+
+bool flameProved(){
+    return readADC(THERMOCOUPLE) >= THERMOCOUPLE_THRESHOLD;
+}
+
+bool boilerOverTemp(){
+    return readADC(THERMISTOR) > readADC(POT);
+}
+
