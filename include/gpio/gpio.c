@@ -1,5 +1,7 @@
 // gpio.c
 
+#include "gpio.h"
+
 // LED Initialization
 void initLED() {
     P6DIR |= BIT0 | BIT1 | BIT2; // Set P6.0, P6.1, P6.2 as outputs (RGB)
@@ -37,22 +39,36 @@ void setIgniter(unsigned char state) {
     else P2OUT &= ~BIT0;
 }
 
-// Call for Heat Initialization
-static volatile int callForHeatState = 0;
-
-void initCallForHeat() {
-    P2DIR &= ~BIT3;      // Set P2.3 as input (button)
-    P2REN |= BIT3;       // Enable pull resistor
-    P2OUT |= BIT3;       // Pull-up
-    P2IES |= BIT3;       // High-to-low transition
-    P2IFG &= ~BIT3;      // Clear interrupt flag
-    P2IE  |= BIT3;       // Enable interrupt
-
-    P1DIR |= BIT0;       // P1.0 as output (LED)
-    P1OUT &= ~BIT0;      // Start OFF
+// Check if there is still an active calll for heat
+char callForHeat(){
+    return P1IN & BIT2;
 }
 
-// Call for Heat ISR
+// Configure call for heat interface
+void initCallForHeat() {
+    P1DIR &= ~BIT3;     // Set P2.3 as input (button)
+    P1IES |=  BIT1;     // Rising edge transition
+//    P1REN |= BIT3;      // Enable pull resistor
+//    P2OUT |= BIT3;       // Pull-up
+//    P2IES = BIT3;       // Falling edge transition
+//    P2IFG &= ~BIT3;     // Clear interrupt flag
+//    P1IE  |= BIT2;      // Enable interrupt
+}
+
+// Put system to sleep (LPM3) indefinitely until awoken by a call for heat.
+void sleep(){
+    setRGB(0, 0, 1);                    // Set RGB LED to blue
+    P2IFG &= ~BIT3;                     // Clear interrupt flag
+    P1IE  |= BIT2;                      // Enable interrupt
+    __bis_SR_register(LPM3_bits | GIE); // Enter LPM3 with interrupts enabled
+}
+
+/***********************************************************************
+*                                                                      *
+*                       -- call for heat ISR --                        *
+*                                                                      *
+***********************************************************************/
+
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
 #pragma vector=PORT2_VECTOR
 __interrupt void Port_2(void)
@@ -62,10 +78,7 @@ void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2(void)
 #error Compiler not supported!
 #endif
 {
-    P2IFG &= ~BIT3;                     // Clear interrupt flag
-    callForHeatState ^= 1;             // Toggle state
-    if (callForHeatState)
-        P1OUT |= BIT0;                 // Turn ON LED
-    else
-        P1OUT &= ~BIT0;                // Turn OFF LED
+    P1IFG &= ~BIT2;                         // Clear interrupt flag
+    P1IE  &= ~BIT2;                         // disable interrupt
+    __bic_SR_register_on_exit(LPM3_bits);   // Exit LPM3
 }

@@ -1,5 +1,6 @@
 // gpio.h
 
+#ifndef GPIO_H
 #define GPIO_H
 
 #include <msp430.h>
@@ -15,4 +16,9 @@ void initIgniter();        //pin initialisation for Igniter P2.0
 void setIgniter(unsigned char state);         //control if Igniter on/off
 
 void initCallForHeat();          //pin initialisation for Call for Heat P1.2
-void callForHeatEnd();           //Call for Heat on/off
+char callForHeat();             // checks if there is an active call for heat
+void sleep();   // put system to sleep (LPM3) indefinitely until awoken by a call for heat
+
+// NOTE: gpio.c also contains call for heat ISR
+
+#endif
