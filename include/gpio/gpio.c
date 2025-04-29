@@ -46,8 +46,8 @@ char callForHeat(){
 
 // Configure call for heat interface
 void initCallForHeat() {
-    P1DIR &= ~BIT3;     // Set P2.3 as input (button)
-    P1IES |=  BIT1;     // Rising edge transition
+    P1DIR &= ~BIT2;     // Set P2.3 as input (button)
+    P1IES &= ~BIT2;     // Rising edge transition
 //    P1REN |= BIT3;      // Enable pull resistor
 //    P2OUT |= BIT3;       // Pull-up
 //    P2IES = BIT3;       // Falling edge transition
@@ -70,10 +70,10 @@ void sleep(){
 ***********************************************************************/
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=PORT2_VECTOR
-__interrupt void Port_2(void)
+#pragma vector=PORT1_VECTOR
+__interrupt void Port_1(void)
 #elif defined(__GNUC__)
-void __attribute__ ((interrupt(PORT2_VECTOR))) Port_2(void)
+void __attribute__ ((interrupt(PORT1_VECTOR))) Port_1(void)
 #else
 #error Compiler not supported!
 #endif
