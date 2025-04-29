@@ -43,13 +43,13 @@ void sleepSeconds(unsigned int seconds) {
     TB0CTL = TBSSEL_1 | MC__UP | TBCLR;     // ACLK, up mode, clear TAR
     TB0CCR0 = 32768 - 1;                    // Set up for 1-second delay (ACLK = 32.768 kHz)
 
-    while (seconds--) {                     // While couting down to zero
+    while (seconds-- > 0) {                     // While couting down to zero
         TB0CCTL0 = CCIE;                    // Enable interrupt for CCR0
         __bis_SR_register(LPM3_bits | GIE); // Enter LPM3 with interrupts enabled
-        TB0CCTL0 &= ~CCIE;                  // Disable interrupt after waking up
+//        TB0CCTL0 &= ~CCIE;                  // Disable interrupt after waking up
     }
 
-    TB0CTL &= ~MC__UP;                      // Stop Timer TB0
+//    TB0CTL &= ~MC__UP;                      // Stop Timer TB0
 }
 
 
@@ -70,4 +70,6 @@ void __attribute__ ((interrupt(TIMERB0_VECTOR))) Timer_B0 (void)
 {
     TB0CCTL0 &= ~CCIFG; // Clear interrupt flag
     __bic_SR_register_on_exit(LPM3_bits); // Exit LPM3
+    TB0CCTL0 &= ~CCIE;                  // Disable interrupt after waking up
+    TB0CTL &= ~MC__UP;                      // Stop Timer TB0
 }

@@ -22,8 +22,8 @@
 
 void initADC();
 unsigned int readADC(char channel);
-char thermistorTemp();
-bool flameProved();
-bool boilerOverTemp();
+//char thermistorTemp();
+char flameProved();
+char boilerOverTemp();
 
 #endif

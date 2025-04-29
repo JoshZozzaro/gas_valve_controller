@@ -16,27 +16,36 @@
 int main(){
     WDTCTL = WDTPW | WDTHOLD;   // Disable watchdog timer
     initADC();                  // Configure ADC
-    P1OUT &= ~BIT0;             // Set LED P1.0 to low state
-    P1DIR |=  BIT0;             // Set LED P1.0 to output
-    P6OUT &= ~BIT6;             // Set LED P6.6 to low state
-    P6DIR |=  BIT6;             // Set LED P6.6 to output
+    P6OUT &= ~BIT0;             // Set LED P6.0 to low state
+    P6DIR |=  BIT0;             // Set LED P6.0 to output
+    P6OUT &= ~BIT1;             // Set LED P6.1 to low state
+    P6DIR |=  BIT1;             // Set LED P6.1 to output
+    P6OUT &= ~BIT2;             // Set LED P6.2 to low state
+    P6DIR |=  BIT2;             // Set LED P6.2 to output
     PM5CTL0 &= ~LOCKLPM5;       // enable GPIO
 
-    unsigned int temp;
+    unsigned int bits;
 
     while(1){
-        temp = readADC(4);
-        if (temp >= (0x7FF)){
-            P1OUT |= BIT0;      // Turn on LED P1.0
+        bits = flameProved();
+        if (bits > 0){
+            P6OUT |= BIT0;      // Turn on red LED
         } else {
-            P1OUT &= ~BIT0;     // Turn off LED P1.0
+            P6OUT &= ~BIT0;     // Turn off red LED
         }
 
-        temp = readADC(5);
-        if (temp >= (0x7FF)){
-            P6OUT |= BIT6;      // Turn on LED P6.6
+        bits = readADC(THERMISTOR);
+        if (bits >= 250){
+            P6OUT |= BIT1;      // Turn on green LED
         } else {
-            P6OUT &= ~BIT6;     // Turn off LED P6.6
+            P6OUT &= ~BIT1;     // Turn off green LED
+        }
+
+        bits = readADC(POT);
+        if (bits >= 250){
+            P6OUT |= BIT2;      // Turn on blue LED
+        } else {
+            P6OUT &= ~BIT2;     // Turn off blue LED
         }
     }
 }

@@ -17,7 +17,7 @@ void initADC(){
     ADCCTL1 |= ADCSHP;                  // Set ADC sampling time
     ADCCTL2 &= ~ADCRES;                 // Clear existing resolution settings
     ADCCTL2 |= ADCRES_2;                // Set ADC resolution to 12 bits
-    ADCMCTL0 |= ADCINCH_3;              // MODIFY each time you read to specify which channel to read from
+    ADCMCTL0 = ADCINCH_3;              // MODIFY each time you read to specify which channel to read from
     ADCIE |= ADCIE0;                    // Enable ADC interrupts
 }
 
@@ -27,19 +27,23 @@ unsigned int readADC(char channel){
         case 3: ADCMCTL0 = ADCINCH_3; break;   // OVERWRITE ADC SETTINGS to read only from channel 3
         case 4: ADCMCTL0 = ADCINCH_4; break;   // OVERWRITE ADC SETTINGS to read only from channel 4
         case 5: ADCMCTL0 = ADCINCH_5; break;   // OVERWRITE ADC SETTINGS to read only from channel 5
-        default: return -1;                    // Channel not supported
+        default: return 0;                    // Channel not supported
     }
-
     ADCCTL0 |= ADCENC | ADCSC;          // Begin ADC read
-    while(ADCIV != ADCIV_ADCIFG);       // Wait for ADC to finish reading
+    while(ADCIV != ADCIV_ADCIFG);// && (timeout--));       // Wait for ADC to finish reading
     return ADCMEM0;                     // Return ADC measurement
 }
 
-bool flameProved(){
-    return readADC(THERMOCOUPLE) >= THERMOCOUPLE_THRESHOLD;
+char flameProved(){
+    unsigned int bits = readADC(THERMOCOUPLE);
+    if (bits >= THERMOCOUPLE_THRESHOLD){
+        return 1;
+    } else {
+        return 0;
+    }
 }
 
-bool boilerOverTemp(){
+char boilerOverTemp(){
     return readADC(THERMISTOR) > readADC(POT);
 }
 
