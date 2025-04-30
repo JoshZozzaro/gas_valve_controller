@@ -1,8 +1,8 @@
 /*    |\_/|  test.c
- *    (* *)  version 1.0
+ *    (* *)  version 1.1
  *  ) /  T   author: Joshua Zozzaro
  * ( /  ||   created: 04/20/25
- *  (_,-bb   last modified: 04/20/25
+ *  (_,-bb   last modified: 04/29/25
  *
  */
 
@@ -12,6 +12,8 @@
 
 #include <msp430.h>
 #include "adc.h"
+
+volatile unsigned int adcResult;
 
 int main(){
     WDTCTL = WDTPW | WDTHOLD;   // Disable watchdog timer
@@ -27,7 +29,7 @@ int main(){
     unsigned int bits;
 
     while(1){
-        bits = flameProved();
+        bits = readADC(THERMOCOUPLE);
         if (bits > 0){
             P6OUT |= BIT0;      // Turn on red LED
         } else {

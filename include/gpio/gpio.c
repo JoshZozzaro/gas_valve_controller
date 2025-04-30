@@ -5,7 +5,7 @@
 // LED Initialization
 void initLED() {
     P6DIR |= BIT0 | BIT1 | BIT2; // Set P6.0, P6.1, P6.2 as outputs (RGB)
-    P6OUT &= ~(BIT0 | BIT1 | BIT2); // Turn off all LEDs initially
+    P6OUT |= BIT0 | BIT1 | BIT2; // Turn off all LEDs initially
 }
 
 // Set RGB LED
@@ -58,7 +58,7 @@ void initCallForHeat() {
 // Put system to sleep (LPM3) indefinitely until awoken by a call for heat.
 void sleep(){
     setRGB(0, 0, 1);                    // Set RGB LED to blue
-    P2IFG &= ~BIT3;                     // Clear interrupt flag
+    P1IFG &= ~BIT2;                     // Clear interrupt flag
     P1IE  |= BIT2;                      // Enable interrupt
     __bis_SR_register(LPM3_bits | GIE); // Enter LPM3 with interrupts enabled
 }

@@ -1,5 +1,5 @@
 /*    |\_/|  main.c
- *    (* *)  version 1.0
+ *    (* *)  version 1.1
  *  ) /  T   created by
  * ( /  ||   Joshua Zozzaro
  *  (_,-bb   04/29/25
@@ -14,6 +14,8 @@
 #include "include/adc/adc.h"
 #include "include/timer/timer.h"
 #include <msp430.h>
+
+volatile unsigned int adcResult = 0;
 
 void setup(){
     WDTCTL = WDTPW | WDTHOLD;   // Disable watchdog timer
@@ -48,23 +50,18 @@ int main(){
             setIgniter(1);                  // Turn on igniter
             setSolenoid(1);                 // Open pilot valve
             sleepSeconds(1);                // Wait one second
-            setRGB(1, 1, 1);
-            char flame = readADC(3);    //flameProved();
-            setRGB(0, 0, 0);
-            if (flame > 6){             // If flame detected
+            if (flameProved()){             // If flame detected
                 break;                      // Break out of while loop
             } else {                        // If flame NOT detected
                 setSolenoid(0);             // Close pilot valve
                 setIgniter(0);              // Turn off igniter
                 setRGB(1, 0, 0);            // Set RGBLED to red
-                sleepSeconds(2);            // wait 2 seconds
                 if (++failToIgnite > 5){    // If pilot light has failed to ignite more than 5 times
-                    setSolenoid(0);
-                    setIgniter(0);
-                    setRGB(1, 0, 0);
                     sleepSeconds(5*60);     // pause for 5 minutes
                     failToIgnite = 0;       // Restart count
-                }                           
+                } else {
+                    sleepSeconds(2);        // wait 2 seconds
+                }                    
             }
         }
 
@@ -72,6 +69,7 @@ int main(){
         setIgniter(0);      // Turn off igniter
         setServo(180);      // Open main valve
         sleepSeconds(2);    // Wait for 2 seconds
+        setSolenoid(0);     // Close pilot valve
 
         // Run sequence
         while(callForHeat()){
@@ -87,7 +85,6 @@ int main(){
             }
         }
 
-        setSolenoid(0); // Close pilot valve
         setServo(0);    // Close main valve
 
         // Determine if system shut down because of an error

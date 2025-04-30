@@ -1,11 +1,12 @@
 /*    |\_/|  adc.h
- *    (* *)  version 1.2
+ *    (* *)  version 1.3
  *  ) /  T   author: Joshua Zozzaro
  * ( /  ||   created: 04/20/25
- *  (_,-bb   last modified: 04/28/25
+ *  (_,-bb   last modified: 04/29/25
  *
  */
 
+extern volatile unsigned int adcResult;
 
 #define THERMOCOUPLE 3
 #define THERMISTOR   4
@@ -22,7 +23,6 @@
 
 void initADC();
 unsigned int readADC(char channel);
-//char thermistorTemp();
 char flameProved();
 char boilerOverTemp();
 

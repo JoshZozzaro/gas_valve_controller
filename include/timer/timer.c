@@ -2,7 +2,7 @@
  *    (* *)  version 1.2
  *  ) /  T   author: Joshua Zozzaro
  * ( /  ||   created: 04/19/25
- *  (_,-bb   last modified: 04/26/25
+ *  (_,-bb   last modified: 04/29/25
  *
  * This program implements the needed functions that use timers
  * including the following:
@@ -33,23 +33,19 @@ void initServo(){
 }
 
 // Set servo to to any angle from 0-180 degrees
-void setServo(int angle){
+void setServo(unsigned char angle){
     TB2CCR1 = 500 + (((100*angle) / 180) * 20); // Set TB2 Capture Compare register to needed time interval
 }
 
 // Put system to lower power mode (LPM3) for x number of seconds using timer TB0
 void sleepSeconds(unsigned int seconds) {
 
-    TB0CTL = TBSSEL_1 | MC__UP | TBCLR;     // ACLK, up mode, clear TAR
     TB0CCR0 = 32768 - 1;                    // Set up for 1-second delay (ACLK = 32.768 kHz)
-
     while (seconds-- > 0) {                     // While couting down to zero
+        TB0CTL = TBSSEL_1 | MC__UP | TBCLR;     // ACLK, up mode, clear TAR
         TB0CCTL0 = CCIE;                    // Enable interrupt for CCR0
         __bis_SR_register(LPM3_bits | GIE); // Enter LPM3 with interrupts enabled
-//        TB0CCTL0 &= ~CCIE;                  // Disable interrupt after waking up
     }
-
-//    TB0CTL &= ~MC__UP;                      // Stop Timer TB0
 }
 
 
@@ -60,16 +56,16 @@ void sleepSeconds(unsigned int seconds) {
 ***********************************************************************/
 
 #if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
-#pragma vector=PORT1_VECTOR
+#pragma vector=TIMERB0_VECTOR
 __interrupt void Timer_B0(void)
 #elif defined(__GNUC__)
-void __attribute__ ((interrupt(TIMERB0_VECTOR))) Timer_B0 (void)
+void __attribute__ ((interrupt(TIMERB0_VECTOR))) Timer_B0(void)
 #else
 #error Compiler not supported!
 #endif
 {
-    TB0CCTL0 &= ~CCIFG; // Clear interrupt flag
+    TB0CCTL0 &= ~CCIFG;                   // Clear interrupt flag
     __bic_SR_register_on_exit(LPM3_bits); // Exit LPM3
-    TB0CCTL0 &= ~CCIE;                  // Disable interrupt after waking up
-    TB0CTL &= ~MC__UP;                      // Stop Timer TB0
+    TB0CCTL0 &= ~CCIE;                    // Disable interrupt after waking up
+    TB0CTL &= ~MC__UP;                    // Stop Timer TB0
 }

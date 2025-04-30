@@ -20,7 +20,7 @@
 void initServo();
 
 // Set servo to to any angle from 0-180 degrees
-void setServo(int angle);
+void setServo(unsigned char angle);
 
 // Put system to lower power mode (LPM3) for x number of seconds using timer TB0
 void sleepSeconds(unsigned int seconds);

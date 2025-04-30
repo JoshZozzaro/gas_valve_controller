@@ -1,8 +1,8 @@
 /*    |\_/|  adc.c
- *    (* *)  version 1.1
+ *    (* *)  version 1.2
  *  ) /  T   author: Joshua Zozzaro
  * ( /  ||   created: 04/20/25
- *  (_,-bb   last modified 04/22/25
+ *  (_,-bb   last modified 04/29/25
  *
  */
 
@@ -21,17 +21,26 @@ void initADC(){
     ADCIE |= ADCIE0;                    // Enable ADC interrupts
 }
 
-unsigned int readADC(char channel){
-    ADCCTL0 &= ~ADCENC;     // Disable ADC so settings can be changed
-    switch(channel){        // NOTE: MUST use = instead of |= to set ALL other channels to 0. Can only read exactly 1 channel.
-        case 3: ADCMCTL0 = ADCINCH_3; break;   // OVERWRITE ADC SETTINGS to read only from channel 3
-        case 4: ADCMCTL0 = ADCINCH_4; break;   // OVERWRITE ADC SETTINGS to read only from channel 4
-        case 5: ADCMCTL0 = ADCINCH_5; break;   // OVERWRITE ADC SETTINGS to read only from channel 5
-        default: return 0;                    // Channel not supported
+unsigned int readADC(char channel) {
+
+    ADCCTL0 &= ~ADCENC; // Disable ADC so settings can be changed
+
+    // Select the ADC channel. MUST use '=' instead of '|=' for assignment.
+    switch(channel) {
+        case 3: ADCMCTL0 = ADCINCH_3; break;
+        case 4: ADCMCTL0 = ADCINCH_4; break;
+        case 5: ADCMCTL0 = ADCINCH_5; break;
+        default: return 0; // Unsupported channel
     }
-    ADCCTL0 |= ADCENC | ADCSC;          // Begin ADC read
-    while(ADCIV != ADCIV_ADCIFG);// && (timeout--));       // Wait for ADC to finish reading
-    return ADCMEM0;                     // Return ADC measurement
+    
+    ADCIE |= ADCIE0;                    // Enable ADC
+    ADCCTL0 |= ADCENC | ADCSC;          // Measure ADC
+    
+    __bis_SR_register(LPM3_bits + GIE); // Go to sleep (LPM3) with interrupts enabled
+                                        // Will be awoken by ADC ISR
+
+    ADCIE &= ~ADCIE0;                   // Disable ADC interrupts
+    return adcResult;                   // Return ADC value stored in global variable adcResult by ADC ISR
 }
 
 char flameProved(){
@@ -47,3 +56,33 @@ char boilerOverTemp(){
     return readADC(THERMISTOR) > readADC(POT);
 }
 
+
+/***********************************************************************
+*                                                                      *
+*              -- ADC Interrupt Service Routine (ISR) --               *
+*                                                                      *
+***********************************************************************/
+
+#if defined(__TI_COMPILER_VERSION__) || defined(__IAR_SYSTEMS_ICC__)
+#pragma vector=ADC_VECTOR
+__interrupt void ADC_ISR(void)
+#elif defined(__GNUC__)
+void __attribute__ ((interrupt(ADC_VECTOR))) ADC_ISR(void)
+#else
+#error Compiler not supported!
+#endif
+{
+    /* 
+     * Use __even_in_range on ADCIV to keep the switch-case efficient. The 
+     * ADCIV register holds the highest pending interrupt flag; here we handle the 
+     * conversion complete interrupt.
+     */
+    switch(__even_in_range(ADCIV, ADCIV_ADCIFG)) {
+        case ADCIV_ADCIFG:    // ADC conversion complete
+            adcResult = ADCMEM0;  // Capture the ADC conversion result
+            // Exit LPM3 on ISR exit so the CPU resumes execution in readADC()
+            __bic_SR_register_on_exit(LPM3_bits);
+            break;
+        default: break;
+    }
+}
